@@ -3,13 +3,16 @@ import sys
 import time
 import serial
 
-ser = serial.Serial('COM4', 9600, timeout=0)
+ser = serial.Serial('COM4', 19200, timeout=0)
 
 libmyo.init('myo-sdk/bin')
 feed = libmyo.device_listener.Feed()
 hub = libmyo.Hub()
 hub.run(1000, feed)
 
+nowClock = 0
+afterClock = 0
+counter = 0
 
 try:
     i = 0;
@@ -22,15 +25,30 @@ try:
 
     # while connected and running
     while hub.running and myo.connected:
-        if ser.bytesize == 8:
-            print(ser.read())
-            myo.vibrate("medium")   # Send Vibration
-            time.sleep(1)           # Wait 1 second
-        if i >= 15:         # To Limit Loop REMOVE
+        afterClock = time.clock()
+        if counter == 0:
+            if ser.read().decode("utf-8") == "v":
+                nowClock = time.clock()
+                myo.vibrate("short")  # Send Vibration
+                ser.flush()
+                counter += 1
+                print("Vibrate1")
+                print(nowClock - afterClock)
+        if ser.read().decode("utf-8") == "v" and counter >= 1 and abs(nowClock - afterClock) > 7:
+            myo.vibrate("short")  # Send Vibration
+            nowClock = time.clock()
+            ser.flush()
+            counter +=1
+            print("Vibrate2")
+        if i >= 100:        # To Limit Loop REMOVE
             hub.shutdown()  # To Limit Loop REMOVE
             ser.close()     # To Limit Loop REMOVE
             sys.exit()      # To Limit Loop REMOVE
+        time.sleep(1)
         i += 1;             # To Limit Loop REMOVE
+
+
+
 
 except KeyboardInterrupt:
     print("Quitting...")
