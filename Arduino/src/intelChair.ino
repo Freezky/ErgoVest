@@ -1,4 +1,3 @@
-#include <MyoController.h>
 #include <MMA7660.h>
 #include <Wire.h>
 
@@ -12,7 +11,7 @@ float accelScale, gyroScale;
 float angle;
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(9600);
   accelero.init();
 
   // start the IMU and filter
@@ -36,7 +35,7 @@ void loop() {
   int gix, giy, giz;
   float ax, ay, az;
   float gx, gy, gz;
-  float roll, pitch, heading;
+  float roll, back, heading;
   unsigned long microsNow;  
 
   float axx,ayy,azz;
@@ -60,18 +59,20 @@ void loop() {
     filter.updateIMU(gx, gy, gz, ax, ay, az);
     angle = atan2(axx,azz)*180/3.14;
     
-    pitch = filter.getPitch();
-    Serial.print("arduinoAngle: ");
-    Serial.println(pitch);
-    Serial.print("accleroAngle: ");
-    Serial.println(angle);
+    back = filter.getPitch();
+    //Serial.print("arduinoAngle: ");
+    //Serial.println(back);
+    //Serial.print("accleroAngle: ");
+    //Serial.println(angle);
+    
 
     // increment previous time, so we keep proper pace
     microsPrevious = microsPrevious + microsPerReading;
   }
-
-  if ((pitch > 110 and pitch < 120) or ((back > 75 and pitch < 80))){
-     Serial.print("v");
+  
+  if ((abs(back) > 49 && abs(back) < 52) || ((abs(angle) > 87 && abs(angle) < 92))){
+    Serial.println("v");
+     //delay(1000);
   }
 
 }
